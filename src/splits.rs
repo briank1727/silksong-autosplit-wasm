@@ -8,14 +8,13 @@ use utf16_lit::utf16;
 
 use crate::{
     silksong_memory::{
-        find_collectable, get_at_bench, get_health, get_heart_pieces, get_is_maggoted,
-        get_max_health_base, get_respawn_scene, get_silk_max, get_silk_spool_parts,
-        is_discontinuity_scene, is_menu, Env, SceneStore, CINEMATIC_STAG_TRAVEL,
-        DEATH_RESPAWN_MARKER_INIT, GAME_STATE_PLAYING, MENU_TITLE, NON_MENU_GAME_STATES,
-        OPENING_SCENES,
+        get_at_bench, get_health, get_heart_pieces, get_is_maggoted, get_max_health_base,
+        get_respawn_scene, get_silk_max, get_silk_spool_parts, is_discontinuity_scene, is_menu,
+        Env, SceneStore, CINEMATIC_STAG_TRAVEL, DEATH_RESPAWN_MARKER_INIT, GAME_STATE_PLAYING,
+        MENU_TITLE, NON_MENU_GAME_STATES, OPENING_SCENES,
     },
     store::Store,
-    timer::{reached_up_to_split, reached_up_to_split_opt, should_split, SplitterAction},
+    timer::{reached_up_to_split, should_split, SplitterAction},
 };
 
 #[derive(Clone, Debug, Default, Eq, Gui, Ord, PartialEq, PartialOrd, RadioButtonOptions)]
@@ -2567,12 +2566,12 @@ fn bench_split(store: &mut Store, e: &Env) -> bool {
         .is_some_and(|p| p.changed_to(&true))
 }
 
-fn cogheart_piece_split(e: &Env, amount: i32) -> Option<SplitterAction> {
+fn cogheart_piece_split(e: &Env, store: &mut Store, amount: i32) -> Option<SplitterAction> {
     if e.mem.deref(&e.pd.woke_song_chevalier).unwrap_or_default() {
         return Some(SplitterAction::Skip);
     }
-    let current = find_collectable(&utf16!("Cog Heart Pieces"), e.mem, e.pd).map(|(_, n)| n);
-    reached_up_to_split_opt(amount, current)
+    let current = store.get_collectable_amount(&utf16!("Cog Heart Pieces"), e);
+    reached_up_to_split(amount, current)
 }
 
 pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<SplitterAction> {
@@ -2885,10 +2884,10 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         // endregion: ThreefoldMelody
 
         // region: NeedleUpgrade
-        Split::NeedleUpgrade1 => reached_up_to_split(1, mem.deref(&pd.nail_upgrades)),
-        Split::NeedleUpgrade2 => reached_up_to_split(2, mem.deref(&pd.nail_upgrades)),
-        Split::NeedleUpgrade3 => reached_up_to_split(3, mem.deref(&pd.nail_upgrades)),
-        Split::NeedleUpgrade4 => reached_up_to_split(4, mem.deref(&pd.nail_upgrades)),
+        Split::NeedleUpgrade1 => reached_up_to_split(1, mem.deref(&pd.nail_upgrades).ok()),
+        Split::NeedleUpgrade2 => reached_up_to_split(2, mem.deref(&pd.nail_upgrades).ok()),
+        Split::NeedleUpgrade3 => reached_up_to_split(3, mem.deref(&pd.nail_upgrades).ok()),
+        Split::NeedleUpgrade4 => reached_up_to_split(4, mem.deref(&pd.nail_upgrades).ok()),
         // endregion: NeedleUpgrade
 
         // region: MaskShards
@@ -2956,17 +2955,17 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         // endregion SpoolFragments
 
         // region: ToolPouchLevels
-        Split::ToolPouch1 => reached_up_to_split(1, mem.deref(&pd.tool_pouch_upgrades)),
-        Split::ToolPouch2 => reached_up_to_split(2, mem.deref(&pd.tool_pouch_upgrades)),
-        Split::ToolPouch3 => reached_up_to_split(3, mem.deref(&pd.tool_pouch_upgrades)),
-        Split::ToolPouch4 => reached_up_to_split(4, mem.deref(&pd.tool_pouch_upgrades)),
+        Split::ToolPouch1 => reached_up_to_split(1, mem.deref(&pd.tool_pouch_upgrades).ok()),
+        Split::ToolPouch2 => reached_up_to_split(2, mem.deref(&pd.tool_pouch_upgrades).ok()),
+        Split::ToolPouch3 => reached_up_to_split(3, mem.deref(&pd.tool_pouch_upgrades).ok()),
+        Split::ToolPouch4 => reached_up_to_split(4, mem.deref(&pd.tool_pouch_upgrades).ok()),
         // endregion: ToolPouchLevels
 
         // region: CraftingKitLevels
-        Split::CraftingKit1 => reached_up_to_split(1, mem.deref(&pd.tool_kit_upgrades)),
-        Split::CraftingKit2 => reached_up_to_split(2, mem.deref(&pd.tool_kit_upgrades)),
-        Split::CraftingKit3 => reached_up_to_split(3, mem.deref(&pd.tool_kit_upgrades)),
-        Split::CraftingKit4 => reached_up_to_split(4, mem.deref(&pd.tool_kit_upgrades)),
+        Split::CraftingKit1 => reached_up_to_split(1, mem.deref(&pd.tool_kit_upgrades).ok()),
+        Split::CraftingKit2 => reached_up_to_split(2, mem.deref(&pd.tool_kit_upgrades).ok()),
+        Split::CraftingKit3 => reached_up_to_split(3, mem.deref(&pd.tool_kit_upgrades).ok()),
+        Split::CraftingKit4 => reached_up_to_split(4, mem.deref(&pd.tool_kit_upgrades).ok()),
         // endregion: CraftingKitLevels
 
         // region: Crests
@@ -3454,9 +3453,9 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         // endregion Tools
 
         // region: Collectables
-        Split::CogheartPiece1 => cogheart_piece_split(e, 1),
-        Split::CogheartPiece2 => cogheart_piece_split(e, 2),
-        Split::CogheartPiece3 => cogheart_piece_split(e, 3),
+        Split::CogheartPiece1 => cogheart_piece_split(e, store, 1),
+        Split::CogheartPiece2 => cogheart_piece_split(e, store, 2),
+        Split::CogheartPiece3 => cogheart_piece_split(e, store, 3),
         // endregion: Collectables
 
         // else

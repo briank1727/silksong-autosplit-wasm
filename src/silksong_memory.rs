@@ -632,6 +632,8 @@ declare_pointers!(PlayerDataPointers {
     tools_version: UnityPointer<5> = UnityPointer::new("GameManager", 0, &["_instance", "playerData", "Tools", "0x18", "0x4c"]),
     // _instance.playerData.Tools.RuntimeData._entries
     tools_entries: UnityPointer<5> = UnityPointer::new("GameManager", 0, &["_instance", "playerData", "Tools", "0x18", "0x18"]),
+    // _instance.playerData.Collectables.RuntimeData._version
+    collectables_version: UnityPointer<5> = UnityPointer::new("GameManager", 0, &["_instance", "playerData", "Collectables", "0x18", "0x4c"]),
     // _instance.playerData.Collectables.RuntimeData._entries
     collectables_entries: UnityPointer<5> = UnityPointer::new("GameManager", 0, &["_instance", "playerData", "Collectables", "0x18", "0x18"]),
 });
@@ -925,15 +927,20 @@ pub fn read_tool(i: i32, mem: &Memory, pd: &PlayerDataPointers) -> Option<bool> 
 
 // --------------------------------------------------------
 
+pub fn get_collectables_version(mem: &Memory, pd: &PlayerDataPointers) -> Option<i32> {
+    mem.deref(&pd.collectables_version).ok()
+}
+
+const COLLECTABLE_ENTRY_STRIDE: i32 = 0x20;
+const COLLECTABLE_KEY_OFFSET: i32 = 0x28;
+const COLLECTABLE_AMOUNT_OFFSET: i32 = 0x30;
+
 pub fn find_collectable(
     item_utf16: &[u16],
     mem: &Memory,
     pd: &PlayerDataPointers,
 ) -> Option<(i32, i32)> {
     const MAX_ITEM_ID_LENGTH: usize = 32;
-    const COLLECTABLE_ENTRY_STRIDE: i32 = 0x20;
-    const COLLECTABLE_KEY_OFFSET: i32 = 0x28;
-    const COLLECTABLE_AMOUNT_OFFSET: i32 = 0x30;
 
     let buf = &mut [0; MAX_ITEM_ID_LENGTH][..item_utf16.len()];
 
@@ -977,6 +984,14 @@ pub fn find_collectable(
     }
 
     None
+}
+
+pub fn read_collectable(i: i32, mem: &Memory, pd: &PlayerDataPointers) -> Option<i32> {
+    let p_entries = mem.deref::<Address64, _>(&pd.collectables_entries).ok()?;
+
+    mem.process
+        .read(p_entries + COLLECTABLE_AMOUNT_OFFSET + COLLECTABLE_ENTRY_STRIDE * i)
+        .ok()
 }
 
 // --------------------------------------------------------

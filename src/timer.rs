@@ -20,19 +20,6 @@ pub fn should_split(b: bool) -> Option<SplitterAction> {
 /// Splits when equal, skips when greater than expected
 pub fn reached_up_to_split<T: PartialOrd>(
     expected: T,
-    actual: Result<T, asr::Error>,
-) -> Option<SplitterAction> {
-    match actual.ok()?.partial_cmp(&expected)? {
-        Ordering::Equal => Some(SplitterAction::Split),
-        Ordering::Greater => Some(SplitterAction::Skip),
-        _ => None,
-    }
-}
-
-/// Same as `reached_up_to_split`, but for callers that already have an `Option<T>`
-/// (e.g. a scan-based lookup like `find_collectable`) rather than a `Result`.
-pub fn reached_up_to_split_opt<T: PartialOrd>(
-    expected: T,
     actual: Option<T>,
 ) -> Option<SplitterAction> {
     match actual?.partial_cmp(&expected)? {
