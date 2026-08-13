@@ -1,7 +1,7 @@
 #[cfg(debug_assertions)]
 use alloc::format;
 use alloc::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     string::{String, ToString},
 };
 use asr::{
@@ -192,6 +192,7 @@ pub struct Store {
     strings: BTreeMap<&'static str, StoreValue<String>>,
     tools: ToolCache,
     collectables: CollectableCache,
+    collectable_pair_keys: BTreeSet<&'static str>,
 }
 
 impl Store {
@@ -205,6 +206,7 @@ impl Store {
             strings: BTreeMap::new(),
             tools: ToolCache::new(),
             collectables: CollectableCache::new(),
+            collectable_pair_keys: BTreeSet::new(),
         }
     }
 
@@ -245,6 +247,7 @@ impl Store {
         e: &Env,
     ) -> Option<Pair<i32>> {
         let amount = self.collectables.get_amount(item_utf16, e);
+        self.collectable_pair_keys.insert(key);
         let entry = self
             .i32s
             .entry(key)
@@ -254,6 +257,11 @@ impl Store {
             entry.watcher.update_infallible(v);
         }
         entry.watcher.pair
+    }
+
+    pub fn reset_collectable_pairs(&mut self) {
+        let keys = &self.collectable_pair_keys;
+        self.i32s.retain(|k, _| !keys.contains(k));
     }
 
     pub fn get_bool_pair(&mut self, key: &str) -> Option<Pair<bool>> {

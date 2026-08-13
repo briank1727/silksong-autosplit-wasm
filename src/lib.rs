@@ -847,6 +847,7 @@ async fn handle_splits(
                         state.timer_state = TimerState::NotRunning;
                         state.split_index = None;
                         state.segments_splitted.clear();
+                        state.store.reset_collectable_pairs();
                         state.hits = 0;
                         state.segment_hits.clear();
                         state.cumulative_hits.clear();
