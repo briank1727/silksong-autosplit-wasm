@@ -1913,6 +1913,10 @@ pub enum Split {
     // endregion: Tools
 
     // region: Collectables
+    /// Craftmetal (Collectable)
+    ///
+    /// Splits when the player picks up a Craftmetal
+    OnObtainCraftmetal,
     /// Cogheart Piece 1 (Collectable)
     ///
     /// Splits when player picks up the first Cogheart Piece
@@ -3453,6 +3457,11 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         // endregion Tools
 
         // region: Collectables
+        Split::OnObtainCraftmetal => should_split(
+            store
+                .get_collectable_amount_pair(&utf16!("Tool Metal"), "craftmetal_amount", e)
+                .is_some_and(|p| p.increased()),
+        ),
         Split::CogheartPiece1 => cogheart_piece_split(e, store, 1),
         Split::CogheartPiece2 => cogheart_piece_split(e, store, 2),
         Split::CogheartPiece3 => cogheart_piece_split(e, store, 3),

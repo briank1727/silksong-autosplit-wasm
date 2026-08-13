@@ -105,6 +105,10 @@ impl ToolCache {
     }
 }
 
+fn no_collectable_get(_: Option<&Env>) -> Option<i32> {
+    None
+}
+
 /// Caches the lookup of a single collectable at a time: calls `find_collectable`
 /// only when the Collectables version changes or a different item is asked for,
 /// otherwise re-reads just the cached index.
@@ -219,6 +223,24 @@ impl Store {
 
     pub fn get_collectable_amount(&mut self, item_utf16: &'static [u16], e: &Env) -> Option<i32> {
         self.collectables.get_amount(item_utf16, e)
+    }
+
+    pub fn get_collectable_amount_pair(
+        &mut self,
+        item_utf16: &'static [u16],
+        key: &'static str,
+        e: &Env,
+    ) -> Option<Pair<i32>> {
+        let amount = self.collectables.get_amount(item_utf16, e);
+        let entry = self
+            .i32s
+            .entry(key)
+            .or_insert_with(|| StoreValue::new(&no_collectable_get, None));
+        entry.interested = true;
+        if let Some(v) = amount {
+            entry.watcher.update_infallible(v);
+        }
+        entry.watcher.pair
     }
 
     pub fn get_bool_pair(&mut self, key: &str) -> Option<Pair<bool>> {
