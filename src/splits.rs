@@ -1913,7 +1913,7 @@ pub enum Split {
     // endregion: Tools
 
     // region: Collectables
-    /// Craftmetal (Collectable)
+    /// Craftmetal (Obtain)
     ///
     /// Splits when the player picks up a Craftmetal
     OnObtainCraftmetal,
