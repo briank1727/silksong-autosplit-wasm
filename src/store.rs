@@ -1,3 +1,5 @@
+#[cfg(debug_assertions)]
+use alloc::format;
 use alloc::{
     collections::BTreeMap,
     string::{String, ToString},
@@ -154,6 +156,8 @@ impl CollectableCache {
     pub fn get_amount(&mut self, item_utf16: &'static [u16], e: &Env) -> Option<i32> {
         self.update_version(Some(e));
         self.version?;
+        #[cfg(debug_assertions)]
+        let old_amount = self.amount;
         if self.item != item_utf16 {
             if let Some((i, amount)) = find_collectable(item_utf16, e.mem, e.pd) {
                 self.i = i;
@@ -165,6 +169,15 @@ impl CollectableCache {
             self.item = item_utf16
         } else if !self.i.is_negative() {
             self.amount = read_collectable(self.i, e.mem, e.pd);
+        }
+        #[cfg(debug_assertions)]
+        if self.amount != old_amount {
+            asr::print_message(&format!(
+                "CollectableCache: {} changed: {:?} -> {:?}",
+                String::from_utf16_lossy(item_utf16),
+                old_amount,
+                self.amount,
+            ));
         }
         self.amount
     }
