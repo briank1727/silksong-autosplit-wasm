@@ -1925,6 +1925,18 @@ pub enum Split {
     ///
     /// Splits when player picks up the third Cogheart Piece
     CogheartPiece3,
+    /// Pale Oil 1 (Collectable)
+    ///
+    /// Splits when player picks up the first Pale Oil
+    PaleOil1,
+    /// Pale Oil 2 (Collectable)
+    ///
+    /// Splits when player picks up the second Pale Oil
+    PaleOil2,
+    /// Pale Oil 3 (Collectable)
+    ///
+    /// Splits when player picks up the third Pale Oil
+    PaleOil3,
     // endregion: Collectables
 }
 
@@ -2572,6 +2584,13 @@ fn cogheart_piece_split(e: &Env, store: &mut Store, amount: i32) -> Option<Split
     }
     let current = store.get_collectable_amount(&utf16!("Cog Heart Pieces"), e);
     reached_up_to_split(amount, current)
+}
+
+fn pale_oil_split(e: &Env, store: &mut Store, amount: i32) -> Option<SplitterAction> {
+    let nail_upgrades: i32 = e.mem.deref(&e.pd.nail_upgrades).unwrap_or_default();
+    let used = (nail_upgrades - 1).max(0);
+    let current = store.get_collectable_amount(&utf16!("Pale_Oil"), e);
+    reached_up_to_split(amount, current.map(|c| c + used))
 }
 
 pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<SplitterAction> {
@@ -3456,6 +3475,9 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         Split::CogheartPiece1 => cogheart_piece_split(e, store, 1),
         Split::CogheartPiece2 => cogheart_piece_split(e, store, 2),
         Split::CogheartPiece3 => cogheart_piece_split(e, store, 3),
+        Split::PaleOil1 => pale_oil_split(e, store, 1),
+        Split::PaleOil2 => pale_oil_split(e, store, 2),
+        Split::PaleOil3 => pale_oil_split(e, store, 3),
         // endregion: Collectables
 
         // else
