@@ -1937,6 +1937,22 @@ pub enum Split {
     ///
     /// Splits when player picks up the third Pale Oil
     PaleOil3,
+    /// Crustnut (Collectable)
+    ///
+    /// Splits when player picks up the Crustnut
+    Crustnut,
+    /// Mossberry Stew (Collectable)
+    ///
+    /// Splits when player picks up the Mossberry Stew
+    MossberryStew,
+    /// Vintage Nectar (Collectable)
+    ///
+    /// Splits when player picks up the Vintage Nectar
+    VintageNectar,
+    /// Pickled Muckmaggot (Collectable)
+    ///
+    /// Splits when player picks up the Pickled Muckmaggot
+    PickledMuckmaggot,
     // endregion: Collectables
 }
 
@@ -2590,7 +2606,19 @@ fn pale_oil_split(e: &Env, store: &mut Store, amount: i32) -> Option<SplitterAct
     let nail_upgrades: i32 = e.mem.deref(&e.pd.nail_upgrades).unwrap_or_default();
     let used = (nail_upgrades - 1).max(0);
     let current = store.get_collectable_amount(&utf16!("Pale_Oil"), e);
-    reached_up_to_split(amount, current.map(|c| c + used))
+    reached_up_to_split(amount, current.map(|c| c - used))
+}
+
+fn gourmand_ingredient_split(
+    e: &Env,
+    store: &mut Store,
+    item_utf16: &'static [u16],
+) -> Option<SplitterAction> {
+    if e.mem.deref(&e.pd.got_gourmand_reward).unwrap_or_default() {
+        return Some(SplitterAction::Skip);
+    }
+    let current = store.get_collectable_amount(item_utf16, e);
+    reached_up_to_split(1, current)
 }
 
 pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<SplitterAction> {
@@ -3478,6 +3506,12 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         Split::PaleOil1 => pale_oil_split(e, store, 1),
         Split::PaleOil2 => pale_oil_split(e, store, 2),
         Split::PaleOil3 => pale_oil_split(e, store, 3),
+        Split::Crustnut => gourmand_ingredient_split(e, store, &utf16!("Coral Ingredient")),
+        Split::MossberryStew => gourmand_ingredient_split(e, store, &utf16!("Mossberry Stew")),
+        Split::VintageNectar => gourmand_ingredient_split(e, store, &utf16!("Vintage Nectar")),
+        Split::PickledMuckmaggot => {
+            gourmand_ingredient_split(e, store, &utf16!("Pickled Roach Egg"))
+        }
         // endregion: Collectables
 
         // else
