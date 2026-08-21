@@ -748,6 +748,22 @@ async fn wait_attach_silksong(gui: &mut Settings, state: &mut AutoSplitterState)
     retry(|| {
         gui.load_update_store_if_unchanged();
         state.update(gui, None);
+        if state.timer_state == TimerState::Running {
+            asr::timer::pause_game_time();
+        }
+        state.look_for_teleporting = false;
+        state.last_game_state = GAME_STATE_INACTIVE;
+        state.last_recoil = false;
+        state.last_hazard = false;
+        state.last_health_0 = false;
+        state.mms_room_dupe = false;
+        #[cfg(debug_assertions)]
+        {
+            state.last_ui_state = 0;
+            state.last_hero_transition_state = 0;
+            state.last_health = None;
+            state.last_paused = false;
+        }
         attach_silksong()
     })
     .await
