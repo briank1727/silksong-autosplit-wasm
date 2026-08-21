@@ -112,7 +112,8 @@ pub struct CollectableCache {
     version: Option<i32>,
     item: &'static [u16],
     i: i32,
-    amount: Option<i32>,
+    amount: Watcher<i32>,
+    interested: bool,
 }
 
 impl CollectableCache {
@@ -121,48 +122,67 @@ impl CollectableCache {
             version: None,
             item: &[],
             i: -1,
-            amount: None,
+            amount: Watcher::new(),
+            interested: false,
         }
     }
 
-    fn update_version(&mut self, e: Option<&Env>) {
-        match e {
-            None => {
-                self.version = None;
-                self.item = &[]
+    fn update_amount(&mut self, e: &Env) {
+        let new = get_collectables_version(e.mem, e.pd);
+        if new.is_none() {
+            self.version = None;
+            self.i = -1;
+            self.amount.pair = None;
+        } else if self.version != new {
+            self.version = new;
+            if let Some((i, amount)) = find_collectable(self.item, e.mem, e.pd) {
+                self.i = i;
+                self.amount.update_infallible(amount);
+            } else {
+                // entry does not exist, assume amount 0
+                self.i = -1;
+                self.amount.update_infallible(0);
             }
-            Some(Env { pd, mem, .. }) => {
-                let new = get_collectables_version(mem, pd);
-                if self.version != new {
-                    self.version = new;
-                    self.item = &[]
-                }
+        } else {
+            if !self.i.is_negative() {
+                self.amount.update(read_collectable(self.i, e.mem, e.pd));
+            } else {
+                // entry does not exist, assume amount 0
+                self.amount.update_infallible(0);
             }
         }
     }
 
     pub fn update_validity(&mut self, e: Option<&Env>) {
-        if !self.item.is_empty() {
-            self.update_version(e)
+        if self.interested {
+            if let Some(e) = e {
+                self.update_amount(e);
+            } else {
+                self.version = None;
+                self.i = -1;
+                self.amount.pair = None;
+            }
+        } else {
+            self.amount.pair = None;
         }
+        self.interested = false;
+    }
+
+    pub fn get_amount_pair(&mut self, item_utf16: &'static [u16], e: &Env) -> Option<&Pair<i32>> {
+        self.interested = true;
+        if self.item != item_utf16 {
+            self.i = -1;
+            self.amount.pair = None;
+            self.item = item_utf16;
+            self.update_amount(e);
+        } else if self.amount.pair.is_none() {
+            self.update_amount(e);
+        }
+        self.amount.pair.as_ref()
     }
 
     pub fn get_amount(&mut self, item_utf16: &'static [u16], e: &Env) -> Option<i32> {
-        self.update_version(Some(e));
-        self.version?;
-        if self.item != item_utf16 {
-            if let Some((i, amount)) = find_collectable(item_utf16, e.mem, e.pd) {
-                self.i = i;
-                self.amount = Some(amount);
-            } else {
-                self.i = -1;
-                self.amount = None;
-            }
-            self.item = item_utf16
-        } else if !self.i.is_negative() {
-            self.amount = read_collectable(self.i, e.mem, e.pd);
-        }
-        self.amount
+        Some(self.get_amount_pair(item_utf16, e)?.current)
     }
 }
 
@@ -219,6 +239,14 @@ impl Store {
 
     pub fn get_collectable_amount(&mut self, item_utf16: &'static [u16], e: &Env) -> Option<i32> {
         self.collectables.get_amount(item_utf16, e)
+    }
+
+    pub fn get_collectable_pair(
+        &mut self,
+        item_utf16: &'static [u16],
+        e: &Env,
+    ) -> Option<&Pair<i32>> {
+        self.collectables.get_amount_pair(item_utf16, e)
     }
 
     pub fn get_bool_pair(&mut self, key: &str) -> Option<Pair<bool>> {
