@@ -1929,6 +1929,10 @@ pub enum Split {
     ///
     /// Splits when obtaining a Cogheart Piece
     OnObtainCogheartPiece,
+    /// Memory Locket (Obtain)
+    ///
+    /// Splits when obtaining a Memory Locket
+    OnObtainMemoryLocket,
     // endregion: Collectables
 }
 
@@ -3463,6 +3467,11 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         Split::OnObtainCogheartPiece => should_split(
             store
                 .get_collectable_pair(&utf16!("Cog Heart Pieces"), e)
+                .is_some_and(|p| p.increased()),
+        ),
+        Split::OnObtainMemoryLocket => should_split(
+            store
+                .get_collectable_pair(&utf16!("Crest Socket Unlocker"), e)
                 .is_some_and(|p| p.increased()),
         ),
         // endregion: Collectables
