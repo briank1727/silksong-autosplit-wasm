@@ -171,6 +171,7 @@ impl CollectableCache {
     pub fn get_amount_pair(&mut self, item_utf16: &'static [u16], e: &Env) -> Option<&Pair<i32>> {
         self.interested = true;
         if self.item != item_utf16 {
+            self.version = None;
             self.i = -1;
             self.amount.pair = None;
             self.item = item_utf16;
