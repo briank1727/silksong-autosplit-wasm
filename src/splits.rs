@@ -1933,6 +1933,10 @@ pub enum Split {
     ///
     /// Splits when obtaining a Memory Locket
     OnObtainMemoryLocket,
+    /// Craftmetal (Obtain)
+    ///
+    /// Splits when obtaining a Craftmetal
+    OnObtainCraftmetal,
     // endregion: Collectables
 }
 
@@ -3472,6 +3476,11 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         Split::OnObtainMemoryLocket => should_split(
             store
                 .get_collectable_pair(&utf16!("Crest Socket Unlocker"), e)
+                .is_some_and(|p| p.increased()),
+        ),
+        Split::OnObtainCraftmetal => should_split(
+            store
+                .get_collectable_pair(&utf16!("Tool Metal"), e)
                 .is_some_and(|p| p.increased()),
         ),
         // endregion: Collectables
