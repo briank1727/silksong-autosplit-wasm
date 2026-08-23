@@ -1937,6 +1937,22 @@ pub enum Split {
     ///
     /// Splits when obtaining a Craftmetal
     OnObtainCraftmetal,
+    /// Crustnut (Collectable)
+    ///
+    /// Splits when player picks up the Crustnut
+    Crustnut,
+    /// Mossberry Stew (Collectable)
+    ///
+    /// Splits when player picks up the Mossberry Stew
+    MossberryStew,
+    /// Vintage Nectar (Collectable)
+    ///
+    /// Splits when player picks up the Vintage Nectar
+    VintageNectar,
+    /// Pickled Muckmaggot (Collectable)
+    ///
+    /// Splits when player picks up the Pickled Muckmaggot
+    PickledMuckmaggot,
     // endregion: Collectables
 }
 
@@ -2584,6 +2600,18 @@ fn cogheart_piece_split(e: &Env, store: &mut Store, amount: i32) -> Option<Split
     }
     let current = store.get_collectable_amount(&utf16!("Cog Heart Pieces"), e);
     reached_up_to_split(amount, current)
+}
+
+fn collectable_present_split(
+    e: &Env,
+    store: &mut Store,
+    item_utf16: &'static [u16],
+) -> Option<SplitterAction> {
+    should_split(
+        store
+            .get_collectable_amount(item_utf16, e)
+            .is_some_and(|n| n != 0),
+    )
 }
 
 pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<SplitterAction> {
@@ -3483,6 +3511,12 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
                 .get_collectable_pair(&utf16!("Tool Metal"), e)
                 .is_some_and(|p| p.increased()),
         ),
+        Split::Crustnut => collectable_present_split(e, store, &utf16!("Coral Ingredient")),
+        Split::MossberryStew => collectable_present_split(e, store, &utf16!("Mossberry Stew")),
+        Split::VintageNectar => collectable_present_split(e, store, &utf16!("Vintage Nectar")),
+        Split::PickledMuckmaggot => {
+            collectable_present_split(e, store, &utf16!("Pickled Roach Egg"))
+        }
         // endregion: Collectables
 
         // else
