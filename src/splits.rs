@@ -1965,6 +1965,26 @@ pub enum Split {
     ///
     /// Splits when player picks up the third Pale Oil
     PaleOil3,
+    /// Ruined Tool (Collectable)
+    ///
+    /// Splits when player picks up the Ruined Tool
+    RuinedTool,
+    /// Twisted Bud (Collectable)
+    ///
+    /// Splits when player picks up the Twisted Bud
+    TwistedBud,
+    /// Maidens Soul (Collectable)
+    ///
+    /// Splits when player picks up the Maiden's Soul
+    MaidensSoul,
+    /// Hermits Soul (Collectable)
+    ///
+    /// Splits when player picks up the Hermit's Soul
+    HermitsSoul,
+    /// Seekers Soul (Collectable)
+    ///
+    /// Splits when player picks up the Seeker's Soul
+    SeekersSoul,
     // endregion: Collectables
 }
 
@@ -3539,6 +3559,21 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         Split::PaleOil1 => pale_oil_split(e, store, 1),
         Split::PaleOil2 => pale_oil_split(e, store, 2),
         Split::PaleOil3 => pale_oil_split(e, store, 3),
+        Split::RuinedTool => {
+            collectable_present_split(e, store, &utf16!("Broken SilkShot"))
+        }
+        Split::TwistedBud => {
+                collectable_present_split(e, store, &utf16!("Wood Witch Item"))
+        }
+        Split::MaidensSoul => {
+                collectable_present_split(e, store, &utf16!("Snare Soul Churchkeeper"))
+        }
+        Split::HermitsSoul => {
+                collectable_present_split(e, store, &utf16!("Snare Soul Bell Hermit"))
+        }
+        Split::SeekersSoul => {
+                collectable_present_split(e, store, &utf16!("Snare Soul Swamp Bug"))
+        }
         // endregion: Collectables
 
         // else
