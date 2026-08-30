@@ -1953,6 +1953,18 @@ pub enum Split {
     ///
     /// Splits when player picks up the Pickled Muckmaggot
     PickledMuckmaggot,
+    /// Pale Oil 1 (Collectable)
+    ///
+    /// Splits when player picks up the first Pale Oil
+    PaleOil1,
+    /// Pale Oil 2 (Collectable)
+    ///
+    /// Splits when player picks up the second Pale Oil
+    PaleOil2,
+    /// Pale Oil 3 (Collectable)
+    ///
+    /// Splits when player picks up the third Pale Oil
+    PaleOil3,
     // endregion: Collectables
 }
 
@@ -2612,6 +2624,13 @@ fn collectable_present_split(
             .get_collectable_amount(item_utf16, e)
             .is_some_and(|n| n != 0),
     )
+}
+
+fn pale_oil_split(e: &Env, store: &mut Store, amount: i32) -> Option<SplitterAction> {
+    let nail_upgrades: i32 = e.mem.deref(&e.pd.nail_upgrades).unwrap_or_default();
+    let used = (nail_upgrades - 1).max(0);
+    let current = store.get_collectable_amount(&utf16!("Pale_Oil"), e);
+    reached_up_to_split(amount, current.map(|c| c + used))
 }
 
 pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<SplitterAction> {
@@ -3517,6 +3536,9 @@ pub fn continuous_splits(split: &Split, e: &Env, store: &mut Store) -> Option<Sp
         Split::PickledMuckmaggot => {
             collectable_present_split(e, store, &utf16!("Pickled Roach Egg"))
         }
+        Split::PaleOil1 => pale_oil_split(e, store, 1),
+        Split::PaleOil2 => pale_oil_split(e, store, 2),
+        Split::PaleOil3 => pale_oil_split(e, store, 3),
         // endregion: Collectables
 
         // else
